@@ -4,23 +4,24 @@ mongoose = require("mongoose"),
 passport = require("passport"),
 bodyParser = require("body-parser"),
 LocalStrategy = require("passport-local"),
-passportLocalMongoose = require("passport-local-mongoose"),
+session = require("express-session"),
 User = require("./models/user")
+
 app.set("view engine", "ejs");
 
-// mongoose.connect("mongodb://localhost/auth",{useNewUrlParser:true});
-mongoose.connect("mongodb://shivam:shivam@cluster0-shard-00-00-bfppm.mongodb.net:27017,cluster0-shard-00-01-bfppm.mongodb.net:27017,cluster0-shard-00-02-bfppm.mongodb.net:27017/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true",{useNewUrlParser:true});
+// mongoose.connect("mongodb://localhost:27017/auth", {useNewUrlParser: true});
+mongoose.connect("mongodb://shivam:shivam@cluster0-shard-00-00-bfppm.mongodb.net:27017,cluster0-shard-00-01-bfppm.mongodb.net:27017,cluster0-shard-00-02-bfppm.mongodb.net:27017/auth?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true",{useNewUrlParser:true});
 
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.use(require("express-session")({
+app.use(session({
 	secret: "Hello, This is my Secret Line",
 	resave: false,
 	saveUninitialized: false,
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
-
 
 passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
@@ -52,6 +53,7 @@ app.post("/register", function(req,res){
 	});
 });
 
+
 app.get("/login", function(req,res){
 	res.render("login");
 });
@@ -62,10 +64,11 @@ app.post("/login", passport.authenticate("local",{
 }) ,function(req,res){	
 });
 
+
 app.get("/logout", function(req,res){
 	req.logout();
 	res.redirect("/");
-})
+});
 
 //Middleware to check if user is logged in
 function isLoggedIn(req,res,next){
@@ -74,7 +77,6 @@ function isLoggedIn(req,res,next){
 	}
 	res.redirect("/login");
 }
-
 
 app.listen(process.env.PORT || 3000, function(){
 	console.log("Server Started");
